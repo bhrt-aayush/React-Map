@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import leaflet from "leaflet";
 import useLocalStorage from "../hooks/useLocalStorage";
 import useGeolocation from "../hooks/useGeolocation";
+import FindMeButton from "./FindMeButton";
 
 export default function Map() {
   const mapRef = useRef();
@@ -17,7 +18,7 @@ export default function Map() {
     []
   );
 
-  const location = useGeolocation();
+  const { position, loading, error } = useGeolocation();
 
   useEffect(() => {
     mapRef.current = leaflet
@@ -57,24 +58,36 @@ export default function Map() {
     // });
   }, []);
 
+  const handleFindMe = () => {
+    if (position.latitude !== 0 && position.longitude !== 0) {
+      mapRef.current.setView([position.latitude, position.longitude], 15);
+    }
+  };
+
   useEffect(() => {
-    setUserPosition({ ...userPosition });
+    if (position.latitude !== 0 && position.longitude !== 0) {
+      setUserPosition({ ...position });
 
-    if (userMarkerRef.current) {
-      mapRef.current.removeLayer(userMarkerRef.current);
+      if (userMarkerRef.current) {
+        mapRef.current.removeLayer(userMarkerRef.current);
+      }
+
+      userMarkerRef.current = leaflet
+        .marker([position.latitude, position.longitude])
+        .addTo(mapRef.current)
+        .bindPopup("Your Location");
+
+      const el = userMarkerRef.current.getElement();
+      if (el) {
+        el.style.filter = "hue-rotate(120deg)";
+      }
     }
+  }, [position]);
 
-    userMarkerRef.current = leaflet
-      .marker([location.latitude, location.longitude])
-      .addTo(mapRef.current)
-      .bindPopup("User");
-
-    const el = userMarkerRef.current.getElement();
-    if (el) {
-      el.style.filter = "hue-rotate(120deg)";
-    }
-
-    mapRef.current.setView([location.latitude, location.longitude]);
-  }, [location, userPosition.latitude, userPosition.longitude]);
-  return <div id="map" ref={mapRef}></div>;
+  return (
+    <div className="map-container">
+      <div id="map" ref={mapRef}></div>
+      <FindMeButton onFindMe={handleFindMe} loading={loading} error={error} />
+    </div>
+  );
 }

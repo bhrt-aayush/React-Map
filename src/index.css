@@ -1,0 +1,22 @@
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+
+#map {
+  width: 40%;
+  height: 40%;
+  margin-left: auto; /* Pushes map to the right side */
+  margin-top: 150px;
+}
